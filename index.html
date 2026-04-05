@@ -1,0 +1,366 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>CENSS Dashboard</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<style>
+body {
+    margin:0;
+    font-family:'Segoe UI';
+    background:#020617;
+    color:white;
+    overflow-x:hidden;
+}
+
+/* LOADER */
+#loader {
+    position:fixed;
+    width:100%;
+    height:100%;
+    background:#020617;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    flex-direction:column;
+    z-index:999;
+}
+
+.loader-text {
+    font-size:28px;
+    font-weight:bold;
+    background: linear-gradient(to right,#38bdf8,#22c55e);
+    -webkit-background-clip:text;
+    color:transparent;
+    animation: glow 1.5s infinite alternate;
+}
+
+@keyframes glow {
+    from { opacity:0.5; }
+    to { opacity:1; }
+}
+
+/* LOGIN */
+.container {
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    height:100vh;
+    animation: fadeIn 1s;
+}
+
+.card {
+    background:rgba(255,255,255,0.08);
+    padding:40px;
+    border-radius:20px;
+    text-align:center;
+    backdrop-filter:blur(10px);
+    animation: slideUp 0.8s ease;
+}
+
+input {
+    padding:10px;
+    margin:10px;
+    width:80%;
+}
+
+/* DASHBOARD */
+.dashboard { display:none; animation: fadeIn 1s; }
+
+/* SIDEBAR */
+.sidebar {
+    width:230px;
+    background:#0f172a;
+    position:fixed;
+    height:100%;
+    padding:20px;
+}
+
+/* LOGO */
+.logo {
+    text-align:center;
+    font-size:24px;
+    font-weight:bold;
+    margin-bottom:30px;
+    background: linear-gradient(to right,#38bdf8,#22c55e);
+    -webkit-background-clip:text;
+    color:transparent;
+    animation: fadeIn 2s;
+}
+
+/* NAV */
+.nav-item {
+    padding:10px;
+    margin:8px 0;
+    background:#1e293b;
+    border-radius:8px;
+    cursor:pointer;
+    transition:0.3s;
+}
+
+.nav-item:hover {
+    background:#334155;
+    transform:translateX(6px);
+}
+
+/* MAIN */
+.main {
+    margin-left:250px;
+    padding:20px;
+}
+
+/* TOPBAR */
+.topbar {
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+}
+
+/* GRID */
+.grid {
+    display:grid;
+    grid-template-columns:repeat(auto-fit,minmax(200px,1fr));
+    gap:20px;
+    margin-top:20px;
+}
+
+/* CARD */
+.card-box {
+    background:#1e293b;
+    padding:20px;
+    border-radius:12px;
+    cursor:pointer;
+    transition:0.3s;
+    animation: fadeIn 0.5s;
+}
+
+.card-box:hover {
+    background:#334155;
+    transform:translateY(-5px) scale(1.03);
+}
+
+/* FILE */
+.file {
+    display:flex;
+    justify-content:space-between;
+    background:#334155;
+    padding:8px;
+    margin-top:5px;
+    border-radius:6px;
+    animation: fadeIn 0.3s;
+}
+
+/* BUTTON */
+button {
+    padding:6px 10px;
+    border:none;
+    border-radius:6px;
+    cursor:pointer;
+}
+
+.upload { background:#22c55e; }
+.delete { background:#ef4444; }
+.logout { background:#f97316; }
+
+/* VIEWER */
+#viewer {
+    margin-top:20px;
+    background:#1e293b;
+    padding:10px;
+    border-radius:10px;
+}
+
+/* ANIMATIONS */
+@keyframes fadeIn {
+    from {opacity:0;}
+    to {opacity:1;}
+}
+
+@keyframes slideUp {
+    from {transform:translateY(30px); opacity:0;}
+    to {transform:translateY(0); opacity:1;}
+}
+
+</style>
+</head>
+
+<body>
+
+<!-- LOADER -->
+<div id="loader">
+<div class="loader-text">🚀 CENSS Dashboard</div>
+</div>
+
+<!-- LOGIN -->
+<div id="loginPage" class="container">
+<div class="card">
+<h2>🔐 CENSS Login</h2>
+<input id="username" placeholder="Username"><br>
+<input id="password" type="password"><br>
+<button onclick="login()">Login</button>
+<p id="error" style="color:red;"></p>
+</div>
+</div>
+
+<!-- DASHBOARD -->
+<div id="dashboard" class="dashboard">
+
+<div class="sidebar">
+<div class="logo">CENSS</div>
+
+<div class="nav-item" onclick="openFolder('Power BI')">📈 Power BI</div>
+<div class="nav-item" onclick="openFolder('Excel')">📊 Excel</div>
+<div class="nav-item" onclick="openFolder('SQL')">🗄️ SQL</div>
+<div class="nav-item" onclick="openFolder('Python')">🐍 Python</div>
+<div class="nav-item" onclick="openFolder('Tableau')">📉 Tableau</div>
+<div class="nav-item" onclick="openFolder('Data Sets')">📁 Data Sets</div>
+</div>
+
+<div class="main">
+
+<div class="topbar">
+<div>
+<input type="file" id="fileInput">
+<button class="upload" onclick="uploadFile()">Upload</button>
+<button class="logout" onclick="logout()">Logout</button>
+</div>
+</div>
+
+<h2 id="title">Dashboard</h2>
+
+<canvas id="chart" height="100"></canvas>
+
+<!-- VIEWER -->
+<div id="viewer"></div>
+
+<div id="content" class="grid"></div>
+
+</div>
+</div>
+
+<script>
+
+// LOADER
+setTimeout(()=>{ loader.style.display="none"; },1500);
+
+const users = { "censs":"censs@1234" };
+
+const members = ["Chandana","Eswari","Narendra","Sandhya","Saathvik"];
+
+let currentFolder="", currentSub="";
+let storage = JSON.parse(localStorage.getItem("storage")) || {};
+
+// LOGIN
+function login(){
+    if(users[username.value] === password.value){
+        loginPage.style.display="none";
+        dashboard.style.display="block";
+        loadChart();
+    } else {
+        error.innerText="Invalid Credentials";
+    }
+}
+
+// LOGOUT
+function logout(){
+    location.reload();
+}
+
+// OPEN FOLDER
+function openFolder(name){
+    currentFolder = name;
+    title.innerText = name;
+
+    let html="";
+    let list = name==="Data Sets" ? ["Raw Dataset","Cleaned Dataset"] : members;
+
+    list.forEach(m=>{
+        html += `<div class="card-box" onclick="selectSub('${m}')">
+        📂 ${m}<div id="${m}"></div></div>`;
+    });
+
+    content.innerHTML = html;
+}
+
+// SELECT
+function selectSub(name){
+    currentSub = name;
+}
+
+// UPLOAD
+function uploadFile(){
+    let file = fileInput.files[0];
+    if(!file || !currentSub) return alert("Select folder & file");
+
+    let reader = new FileReader();
+    reader.onload = function(e){
+
+        if(!storage[currentFolder]) storage[currentFolder]={};
+        if(!storage[currentFolder][currentSub]) storage[currentFolder][currentSub]=[];
+
+        storage[currentFolder][currentSub].push({
+            name:file.name,
+            data:e.target.result
+        });
+
+        localStorage.setItem("storage", JSON.stringify(storage));
+        displayFiles(currentSub);
+        loadChart();
+    };
+    reader.readAsDataURL(file);
+}
+
+// DISPLAY
+function displayFiles(sub){
+    let files = storage[currentFolder][sub];
+    let html="";
+
+    files.forEach((f,i)=>{
+        html += `<div class="file">
+        <span onclick="openFile('${f.data}')">${f.name}</span>
+        <button class="delete" onclick="deleteFile('${sub}',${i})">Delete</button>
+        </div>`;
+    });
+
+    document.getElementById(sub).innerHTML = html;
+}
+
+// OPEN FILE INLINE
+function openFile(data){
+    document.getElementById("viewer").innerHTML = `
+    <iframe src="${data}" style="width:100%;height:500px;border:none;"></iframe>
+    `;
+}
+
+// DELETE
+function deleteFile(sub,i){
+    storage[currentFolder][sub].splice(i,1);
+    localStorage.setItem("storage", JSON.stringify(storage));
+    displayFiles(sub);
+    loadChart();
+}
+
+// CHART
+function loadChart(){
+    let total = 0;
+    for(let f in storage){
+        for(let s in storage[f]){
+            total += storage[f][s].length;
+        }
+    }
+
+    new Chart(document.getElementById("chart"),{
+        type:'bar',
+        data:{
+            labels:["Files"],
+            datasets:[{label:"Total Files",data:[total]}]
+        }
+    });
+}
+
+</script>
+
+</body>
+</html>
