@@ -1,329 +1,711 @@
-<!DOCTYPE html>
-<html>
-<head>
-<title>CENSS Dashboard</title>
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CENSS Dashboard</title>
 
 <style>
+* { box-sizing: border-box; }
+
 body {
-    margin:0;
-    font-family:'Segoe UI';
-    background: linear-gradient(135deg,#020617,#0f172a);
-    color:white;
+    margin: 0;
+    font-family: 'Segoe UI', Arial, sans-serif;
+    background: linear-gradient(135deg, #020617, #0f172a);
+    color: white;
 }
 
+button, input, select { font: inherit; }
+button { cursor: pointer; border: none; border-radius: 6px; padding: 9px 12px; }
+input, select { padding: 10px; border-radius: 6px; border: none; }
+
 #loginPage {
-    display:flex;
-    justify-content:center;
-    align-items:center;
-    height:100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    padding: 20px;
 }
 
 .card {
-    background:rgba(255,255,255,0.1);
-    padding:30px;
-    border-radius:15px;
-    text-align:center;
+    width: 350px;
+    max-width: 100%;
+    padding: 30px;
+    border-radius: 15px;
+    background: rgba(255,255,255,0.1);
+    text-align: center;
 }
 
-#dashboard { display:none; }
+.login-input { width: 100%; margin: 8px 0; }
+
+.login-btn { width: 100%; background: #3b82f6; color: white; }
+
+.recovery-links {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 18px;
+    gap: 10px;
+}
+
+.recovery-links a {
+    color: #93c5fd;
+    cursor: pointer;
+    font-size: 13px;
+}
+
+#dashboard { display: none; }
 
 .sidebar {
-    width:220px;
-    position:fixed;
-    height:100%;
-    background:#0f172a;
-    padding:20px;
+    width: 250px;
+    position: fixed;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    overflow-y: auto;
+    background: #0f172a;
+    padding: 18px 12px;
+    border-right: 1px solid #334155;
+}
+
+.brand {
+    text-align: center;
+    font-size: 24px;
+    font-weight: bold;
+    padding: 12px 0 20px;
+    color: #60a5fa;
 }
 
 .nav-item {
-    background:#1e293b;
-    padding:10px;
-    margin:10px 0;
-    border-radius:8px;
-    cursor:pointer;
+    display: block;
+    width: 100%;
+    text-align: left;
+    color: white;
+    background: #1e293b;
+    padding: 12px;
+    margin: 7px 0;
+    border-radius: 8px;
 }
 
+.nav-item:hover, .sub-item:hover { background: #334155; }
+
+.sub-list {
+    display: none;
+    margin: 0 0 10px 12px;
+    padding-left: 10px;
+    border-left: 2px solid #475569;
+}
+
+.sub-item {
+    display: block;
+    width: 100%;
+    color: #cbd5e1;
+    background: transparent;
+    text-align: left;
+    padding: 9px;
+    margin: 3px 0;
+    border-radius: 6px;
+    cursor: pointer;
+}
+
+.sub-item.active { background: #2563eb; color: white; }
+
 .main {
-    margin-left:240px;
-    padding:20px;
+    margin-left: 250px;
+    padding: 22px;
+    min-height: 100vh;
 }
 
 .topbar {
-    display:flex;
-    justify-content:flex-end;
-    gap:10px;
-    flex-wrap:wrap;
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    gap: 9px;
+    flex-wrap: wrap;
+    margin-bottom: 25px;
 }
 
-input, select {
-    padding:8px;
-    border-radius:6px;
-    border:none;
-}
-
-button {
-    padding:8px 12px;
-    border:none;
-    border-radius:6px;
-    cursor:pointer;
-}
-
-.upload { background:#22c55e; }
-.logout { background:#f97316; }
-.delete { background:#ef4444; }
+.topbar input { min-width: 150px; }
 
 .file-btn {
-    background:#3b82f6;
-    padding:8px 15px;
-    border-radius:6px;
-    cursor:pointer;
+    display: inline-block;
+    background: #2563eb;
+    padding: 9px 12px;
+    border-radius: 6px;
+    cursor: pointer;
 }
-.file-btn input { display:none; }
+
+.file-btn input { display: none; }
+
+.upload { background: #22c55e; color: #052e16; }
+.logout { background: #f97316; color: white; }
+.delete { background: #ef4444; color: white; }
 
 .card-box {
-    background:#1e293b;
-    padding:15px;
-    margin:10px 0;
-    border-radius:10px;
-    cursor:pointer;
+    background: #1e293b;
+    padding: 16px;
+    margin: 10px 0;
+    border-radius: 10px;
+    cursor: pointer;
+    border: 1px solid #334155;
 }
 
+.card-box:hover { background: #334155; }
+
 .file {
-    display:flex;
-    justify-content:space-between;
-    background:#334155;
-    padding:8px;
-    margin:5px 0;
-    border-radius:6px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    background: #334155;
+    padding: 10px;
+    margin: 7px 0;
+    border-radius: 7px;
+}
+
+.file-name {
+    overflow-wrap: anywhere;
+    cursor: pointer;
+    flex: 1;
 }
 
 #viewer {
-    margin-top:20px;
-    padding:10px;
-    background:#1e293b;
-    border-radius:10px;
+    margin-top: 20px;
+    padding: 12px;
+    background: #1e293b;
+    border-radius: 10px;
+    overflow: auto;
+}
+
+#viewer img, #viewer iframe {
+    max-width: 100%;
+    border: none;
+}
+
+.back-btn { background: #475569; color: white; margin-top: 12px; }
+
+.info { color: #cbd5e1; font-size: 14px; }
+
+#botPanel {
+    display: none;
+    background: #1e293b;
+    border: 1px solid #475569;
+    padding: 18px;
+    border-radius: 12px;
+    max-width: 750px;
+}
+
+#chatMessages {
+    height: 300px;
+    overflow-y: auto;
+    padding: 12px;
+    margin: 15px 0;
+    background: #020617;
+    border-radius: 8px;
+}
+
+.message { margin: 10px 0; line-height: 1.5; overflow-wrap: anywhere; }
+.bot-message { color: #93c5fd; }
+.user-message { color: #86efac; }
+
+.chat-form { display: flex; gap: 8px; }
+.chat-form input { flex: 1; min-width: 0; }
+.chat-form button { background: #2563eb; color: white; }
+
+@media (max-width: 700px) {
+    .sidebar {
+        position: relative;
+        width: 100%;
+        height: auto;
+        max-height: none;
+    }
+
+    .main { margin-left: 0; padding: 15px; }
+    .topbar { justify-content: flex-start; }
+    .topbar input { flex: 1; }
+    .file { align-items: flex-start; }
 }
 </style>
 </head>
 
 <body>
 
-<!-- LOGIN -->
+<!-- LOGIN PAGE -->
 <div id="loginPage">
-<div class="card">
-<h2>🔐 CENSS Login</h2>
-<input id="username" placeholder="Username"><br><br>
-<input id="password" type="password"><br><br>
-<button onclick="login()">Login</button>
-<p id="error"></p>
-</div>
+    <div class="card">
+        <h2>🔐 CENSS Login</h2>
+        <p class="info">Welcome to the CENSS Dashboard</p>
+
+        <form id="loginForm">
+            <input class="login-input" id="username"
+                   placeholder="Username" autocomplete="username" required>
+
+            <input class="login-input" id="password"
+                   type="password" placeholder="Password"
+                   autocomplete="current-password" required>
+
+            <button class="login-btn" type="submit">Login</button>
+        </form>
+
+        <div class="recovery-links">
+            <a href="#" id="forgotId">Forgot ID?</a>
+            <a href="#" id="forgotPassword">Forgot Password?</a>
+        </div>
+
+        <p id="error" role="status"></p>
+    </div>
 </div>
 
 <!-- DASHBOARD -->
 <div id="dashboard">
 
-<div class="sidebar">
-<div class="nav-item" onclick="openFolder('Power BI')">📈 Power BI</div>
-<div class="nav-item" onclick="openFolder('Excel')">📊 Excel</div>
-<div class="nav-item" onclick="openFolder('SQL')">🗄️ SQL</div>
-<div class="nav-item" onclick="openFolder('Python')">🐍 Python</div>
-<div class="nav-item" onclick="openFolder('Tableau')">📉 Tableau</div>
-<div class="nav-item" onclick="openFolder('Data Sets')">📁 Data Sets</div>
-</div>
+    <aside class="sidebar">
+        <div class="brand">📊 CENSS</div>
 
-<div class="main">
+        <div id="navigation"></div>
 
-<div class="topbar">
-<input type="text" id="searchInput" placeholder="🔍 Search files..." onkeyup="applyFilter()">
+        <!-- LAST SIDEBAR ITEM -->
+        <button class="nav-item" id="botNav">🤖 What's Bot</button>
+    </aside>
 
-<select id="sortType" onchange="applyFilter()">
-<option value="az">A → Z</option>
-<option value="za">Z → A</option>
-<option value="new">Newest</option>
-<option value="old">Oldest</option>
-</select>
+    <main class="main">
+        <div class="topbar">
+            <input type="search" id="searchInput"
+                   placeholder="🔍 Search files...">
 
-<label class="file-btn">
-📁 Choose File
-<input type="file" id="fileInput">
-</label>
+            <select id="sortType" aria-label="Sort files">
+                <option value="az">A → Z</option>
+                <option value="za">Z → A</option>
+                <option value="new">Newest</option>
+                <option value="old">Oldest</option>
+            </select>
 
-<button class="upload" onclick="uploadFile()">Upload</button>
-<button class="logout" onclick="logout()">Logout</button>
-</div>
+            <label class="file-btn">
+                📁 Choose File
+                <input type="file" id="fileInput">
+            </label>
 
-<h2>Dashboard</h2>
+            <button class="upload" id="uploadBtn">Upload</button>
+            <button class="logout" id="logoutBtn">Logout</button>
+        </div>
 
-<canvas id="chart"></canvas>
+        <section id="dashboardContent">
+            <h2>Welcome to CENSS Dashboard</h2>
+            <p class="info">Choose a main folder from the sidebar to view its subfolders and files.</p>
+            <div id="content"></div>
+            <div id="viewer"></div>
+        </section>
 
-<div id="content"></div>
-<div id="viewer"></div>
+        <!-- WHAT'S BOT -->
+        <section id="botPanel">
+            <h2>🤖 What's Bot</h2>
+            <p class="info">Ask me about using the CENSS Dashboard.</p>
 
-</div>
+            <div id="chatMessages" aria-live="polite">
+                <div class="message bot-message">
+                    Bot: Hello! How can I help you? Ask about folders,
+                    uploading, searching, sorting, or deleting files.
+                </div>
+            </div>
+
+            <form class="chat-form" id="chatForm">
+                <input id="chatInput" placeholder="Type your question..."
+                       autocomplete="off" required>
+                <button type="submit">Send</button>
+            </form>
+
+            <button class="back-btn" id="backToDashboard">
+                ← Back to Dashboard
+            </button>
+        </section>
+    </main>
 </div>
 
 <script>
+const USERS = { "censs": "censs@1234" };
 
-const users = {"censs":"censs@1234"};
-const members = ["Chandana","Eswari","Narendra","Sandhya","Saathvik"];
+const MEMBERS = [
+    "Chandana", "Eswari", "Narendra", "Sandhya", "Saathvik"
+];
 
-let currentFolder="", currentSub="";
-let storage = JSON.parse(localStorage.getItem("storage")) || {};
-let chartInstance=null;
+const FOLDERS = {
+    "Power BI": MEMBERS,
+    "Excel": MEMBERS,
+    "SQL": MEMBERS,
+    "Python": MEMBERS,
+    "Tableau": MEMBERS,
+    "Data Sets": ["Raw Dataset", "Cleaned Dataset"]
+};
 
-// LOGIN
-function login(){
-    if(users[username.value]===password.value){
-        loginPage.style.display="none";
-        dashboard.style.display="block";
-    } else {
-        error.innerText="Invalid Credentials";
+let currentFolder = "";
+let currentSub = "";
+let storage = {};
+
+try {
+    storage = JSON.parse(localStorage.getItem("censs_storage")) || {};
+} catch (e) {
+    storage = {};
+}
+
+const $ = id => document.getElementById(id);
+
+function saveStorage() {
+    try {
+        localStorage.setItem("censs_storage", JSON.stringify(storage));
+        return true;
+    } catch (e) {
+        alert("Storage is full. Try uploading a smaller file.");
+        return false;
     }
 }
 
-// LOGOUT
-function logout(){ location.reload(); }
+// LOGIN
+$("loginForm").addEventListener("submit", function(e) {
+    e.preventDefault();
 
-// OPEN FOLDER
-function openFolder(name){
-    currentFolder=name;
-    currentSub="";
+    const user = $("username").value.trim();
+    const pass = $("password").value;
 
-    let list=name==="Data Sets"
-    ? ["Raw Dataset","Cleaned Dataset"]
-    : members;
+    if (USERS[user] === pass) {
+        $("loginPage").style.display = "none";
+        $("dashboard").style.display = "block";
+        $("error").textContent = "";
+        renderNavigation();
+    } else {
+        $("error").textContent = "Invalid username or password.";
+    }
+});
 
-    let html="";
-    let labels=[];
-    let data=[];
+// DEMO ACCOUNT RECOVERY
+$("forgotId").addEventListener("click", function(e) {
+    e.preventDefault();
+    alert("Demo Username: censs\nFor a real deployment, contact your administrator.");
+});
 
-    list.forEach(sub=>{
-        let count=(storage[name]&&storage[name][sub])?storage[name][sub].length:0;
+$("forgotPassword").addEventListener("click", function(e) {
+    e.preventDefault();
+    alert("Password recovery is not configured in this demo.\nPlease contact your administrator to reset your password.");
+});
 
-        labels.push(sub);
-        data.push(count);
+$("logoutBtn").addEventListener("click", function() {
+    location.reload();
+});
 
-        html+=`<div class="card-box" onclick="openSub('${sub}')">
-        📂 ${sub} (${count})
-        </div>`;
+// SIDEBAR WITH SUBFOLDERS BELOW EACH MAIN FOLDER
+function renderNavigation() {
+    const nav = $("navigation");
+    nav.innerHTML = "";
+
+    Object.entries(FOLDERS).forEach(([folder, subfolders]) => {
+        const wrapper = document.createElement("div");
+
+        const mainButton = document.createElement("button");
+        mainButton.className = "nav-item";
+        mainButton.textContent = "📁 " + folder;
+        mainButton.addEventListener("click", () => {
+            const subList = wrapper.querySelector(".sub-list");
+            const isOpen = subList.style.display === "block";
+
+            document.querySelectorAll(".sub-list").forEach(el => {
+                el.style.display = "none";
+            });
+
+            subList.style.display = isOpen ? "none" : "block";
+            openFolder(folder);
+        });
+
+        const subList = document.createElement("div");
+        subList.className = "sub-list";
+
+        subfolders.forEach(sub => {
+            const subButton = document.createElement("button");
+            subButton.className = "sub-item";
+            subButton.textContent = "└ 📂 " + sub;
+            subButton.addEventListener("click", () => {
+                currentFolder = folder;
+                openSub(sub);
+
+                document.querySelectorAll(".sub-item").forEach(el => {
+                    el.classList.remove("active");
+                });
+                subButton.classList.add("active");
+            });
+
+            subList.appendChild(subButton);
+        });
+
+        wrapper.appendChild(mainButton);
+        wrapper.appendChild(subList);
+        nav.appendChild(wrapper);
     });
-
-    content.innerHTML=html;
-    updateChart(labels,data);
 }
 
-// OPEN SUB
-function openSub(name){
-    currentSub=name;
+// OPEN MAIN FOLDER
+function openFolder(name) {
+    currentFolder = name;
+    currentSub = "";
+
+    $("dashboardContent").style.display = "block";
+    $("botPanel").style.display = "none";
+    $("viewer").innerHTML = "";
+
+    const content = $("content");
+    content.innerHTML = "";
+
+    const heading = document.createElement("h3");
+    heading.textContent = "📁 " + name;
+    content.appendChild(heading);
+
+    FOLDERS[name].forEach(sub => {
+        const files = getFiles(name, sub);
+
+        const card = document.createElement("div");
+        card.className = "card-box";
+        card.textContent = "📂 " + sub + " (" + files.length + ")";
+
+        card.addEventListener("click", () => {
+            currentFolder = name;
+            openSub(sub);
+        });
+
+        content.appendChild(card);
+    });
+}
+
+function getFiles(folder, sub) {
+    return storage[folder] && storage[folder][sub]
+        ? storage[folder][sub]
+        : [];
+}
+
+// OPEN SUBFOLDER
+function openSub(name) {
+    currentSub = name;
+    $("dashboardContent").style.display = "block";
+    $("botPanel").style.display = "none";
+    $("viewer").innerHTML = "";
     applyFilter();
 }
 
-// SEARCH + SORT
-function applyFilter(){
+// SEARCH AND SORT
+$("searchInput").addEventListener("input", applyFilter);
+$("sortType").addEventListener("change", applyFilter);
 
-    if(!currentSub) return;
+function applyFilter() {
+    if (!currentFolder || !currentSub) return;
 
-    let search=document.getElementById("searchInput").value.toLowerCase();
-    let sort=document.getElementById("sortType").value;
+    const search = $("searchInput").value.toLowerCase().trim();
+    const sort = $("sortType").value;
 
-    let files=(storage[currentFolder]&&storage[currentFolder][currentSub])||[];
+    let files = getFiles(currentFolder, currentSub)
+        .map((file, index) => ({ ...file, index }));
 
-    let filtered = files.map((f,i)=>({...f,index:i}));
+    files = files.filter(file => file.name.toLowerCase().includes(search));
 
-    filtered = filtered.filter(f=>f.name.toLowerCase().includes(search));
+    if (sort === "az") {
+        files.sort((a, b) => a.name.localeCompare(b.name));
+    } else if (sort === "za") {
+        files.sort((a, b) => b.name.localeCompare(a.name));
+    } else if (sort === "new") {
+        files.sort((a, b) =>
+            (b.uploadedAt || b.index) - (a.uploadedAt || a.index));
+    } else if (sort === "old") {
+        files.sort((a, b) =>
+            (a.uploadedAt || a.index) - (b.uploadedAt || b.index));
+    }
 
-    // SORT
-    if(sort==="az") filtered.sort((a,b)=>a.name.localeCompare(b.name));
-    if(sort==="za") filtered.sort((a,b)=>b.name.localeCompare(a.name));
-    if(sort==="new") filtered.reverse();
-    if(sort==="old") filtered.sort((a,b)=>a.index - b.index);
+    const content = $("content");
+    content.innerHTML = "";
 
-    let html=`<h3>📁 ${currentSub}</h3>`;
+    const heading = document.createElement("h3");
+    heading.textContent = "📁 " + currentFolder + " / " + currentSub;
+    content.appendChild(heading);
 
-    filtered.forEach(f=>{
-        html+=`
-        <div class="file">
-        <span onclick="openFile('${f.data}','${f.type}')">${f.name}</span>
-        <button class="delete" onclick="deleteFile(${f.index})">❌</button>
-        </div>`;
+    if (files.length === 0) {
+        const empty = document.createElement("p");
+        empty.className = "info";
+        empty.textContent = "No files found in this folder.";
+        content.appendChild(empty);
+    }
+
+    files.forEach(file => {
+        const row = document.createElement("div");
+        row.className = "file";
+
+        const name = document.createElement("span");
+        name.className = "file-name";
+        name.textContent = "📄 " + file.name;
+        name.addEventListener("click", () => openFile(file.index));
+
+        const del = document.createElement("button");
+        del.className = "delete";
+        del.textContent = "Delete";
+        del.addEventListener("click", () => deleteFile(file.index));
+
+        row.appendChild(name);
+        row.appendChild(del);
+        content.appendChild(row);
     });
 
-    html+=`<br><button onclick="openFolder('${currentFolder}')">⬅ Back</button>`;
-    content.innerHTML=html;
+    const back = document.createElement("button");
+    back.className = "back-btn";
+    back.textContent = "← Back to Folders";
+    back.addEventListener("click", () => openFolder(currentFolder));
+    content.appendChild(back);
 }
 
-// UPLOAD
-function uploadFile(){
-    let file=fileInput.files[0];
-    if(!file||!currentSub) return alert("Select subfolder");
+// UPLOAD FILE
+$("uploadBtn").addEventListener("click", uploadFile);
 
-    let reader=new FileReader();
+function uploadFile() {
+    const file = $("fileInput").files[0];
 
-    reader.onload=function(e){
-        if(!storage[currentFolder]) storage[currentFolder]={};
-        if(!storage[currentFolder][currentSub]) storage[currentFolder][currentSub]=[];
+    if (!currentFolder || !currentSub) {
+        alert("First select a main folder and one of its subfolders.");
+        return;
+    }
+
+    if (!file) {
+        alert("Please choose a file first.");
+        return;
+    }
+
+    // Keep localStorage from becoming overloaded by large files.
+    if (file.size > 2 * 1024 * 1024) {
+        alert("This demo supports files up to 2 MB. Use server-side file storage for larger files.");
+        return;
+    }
+
+    const reader = new FileReader();
+
+    reader.onload = function(e) {
+        if (!storage[currentFolder]) storage[currentFolder] = {};
+        if (!storage[currentFolder][currentSub]) {
+            storage[currentFolder][currentSub] = [];
+        }
 
         storage[currentFolder][currentSub].push({
-            name:file.name,
-            data:e.target.result,
-            type:file.type
+            name: file.name,
+            data: e.target.result,
+            type: file.type || "application/octet-stream",
+            uploadedAt: Date.now()
         });
 
-        localStorage.setItem("storage",JSON.stringify(storage));
-        openSub(currentSub);
-        openFolder(currentFolder);
+        if (saveStorage()) {
+            $("fileInput").value = "";
+            openSub(currentSub);
+            renderNavigation();
+        }
     };
 
+    reader.onerror = () => alert("Unable to read this file.");
     reader.readAsDataURL(file);
 }
 
-// DELETE
-function deleteFile(index){
-    storage[currentFolder][currentSub].splice(index,1);
-    localStorage.setItem("storage",JSON.stringify(storage));
-    openSub(currentSub);
-    openFolder(currentFolder);
+// DELETE FILE
+function deleteFile(index) {
+    if (!confirm("Are you sure you want to delete this file?")) return;
+
+    const files = getFiles(currentFolder, currentSub);
+    files.splice(index, 1);
+
+    if (saveStorage()) {
+        $("viewer").innerHTML = "";
+        openSub(currentSub);
+        renderNavigation();
+    }
 }
 
-// OPEN FILE
-function openFile(data,type){
-    if(type.includes("image")){
-        viewer.innerHTML=`<img src="${data}" style="width:100%">`;
+// VIEW FILE
+function openFile(index) {
+    const file = getFiles(currentFolder, currentSub)[index];
+    if (!file) return;
+
+    const viewer = $("viewer");
+    viewer.innerHTML = "";
+
+    const heading = document.createElement("h3");
+    heading.textContent = file.name;
+    viewer.appendChild(heading);
+
+    if (file.type.startsWith("image/")) {
+        const img = document.createElement("img");
+        img.src = file.data;
+        img.alt = file.name;
+        img.style.width = "100%";
+        viewer.appendChild(img);
+    } else if (file.type === "application/pdf") {
+        const frame = document.createElement("iframe");
+        frame.src = file.data;
+        frame.title = file.name;
+        frame.style.width = "100%";
+        frame.style.height = "500px";
+        viewer.appendChild(frame);
     } else {
-        viewer.innerHTML=`<iframe src="${data}" width="100%" height="500"></iframe>`;
+        const link = document.createElement("a");
+        link.href = file.data;
+        link.download = file.name;
+        link.textContent = "Download / Open " + file.name;
+        link.style.color = "#93c5fd";
+        viewer.appendChild(link);
     }
 }
 
-// CHART
-function updateChart(labels,data){
+// WHAT'S BOT
+$("botNav").addEventListener("click", function() {
+    $("dashboardContent").style.display = "none";
+    $("botPanel").style.display = "block";
+});
 
-    if(chartInstance){
-        chartInstance.destroy();
+$("backToDashboard").addEventListener("click", function() {
+    $("botPanel").style.display = "none";
+    $("dashboardContent").style.display = "block";
+});
+
+$("chatForm").addEventListener("submit", function(e) {
+    e.preventDefault();
+
+    const input = $("chatInput");
+    const question = input.value.trim();
+    if (!question) return;
+
+    addMessage("You: " + question, "user-message");
+    input.value = "";
+
+    const q = question.toLowerCase();
+    let answer;
+
+    if (q.includes("upload")) {
+        answer = "Open a main folder, select a subfolder, choose a file, and click Upload.";
+    } else if (q.includes("search")) {
+        answer = "Open a subfolder and enter a filename in the Search files box.";
+    } else if (q.includes("sort") || q.includes("newest") || q.includes("oldest")) {
+        answer = "Use the sorting menu to sort files A–Z, Z–A, newest, or oldest.";
+    } else if (q.includes("delete")) {
+        answer = "Click Delete next to a file and confirm the deletion.";
+    } else if (q.includes("folder")) {
+        answer = "Click a main folder in the sidebar to expand its subfolders. Select a subfolder to view its files.";
+    } else if (q.includes("password") || q.includes("login") || q.includes("id")) {
+        answer = "The demo login username is censs. Use Forgot ID or Forgot Password on the login screen for the demo recovery instructions.";
+    } else if (q.includes("file") || q.includes("open") || q.includes("view")) {
+        answer = "Select a subfolder to see files. Click a filename to preview supported images and PDFs.";
+    } else if (q.includes("hello") || q.includes("hi")) {
+        answer = "Hello! Ask me how to upload, search, sort, or manage your files.";
+    } else {
+        answer = "I can help with folders, uploading, searching, sorting, deleting files, and login. What would you like to do?";
     }
 
-    chartInstance=new Chart(document.getElementById("chart"),{
-        type:'bar',
-        data:{
-            labels:labels,
-            datasets:[{
-                label:"Number of Files",
-                data:data
-            }]
-        },
-        options:{
-            scales:{
-                y:{
-                    beginAtZero:true,
-                    ticks:{ precision:0 }
-                }
-            }
-        }
-    });
-}
+    addMessage("Bot: " + answer, "bot-message");
+});
 
+function addMessage(message, className) {
+    const div = document.createElement("div");
+    div.className = "message " + className;
+    div.textContent = message;
+
+    $("chatMessages").appendChild(div);
+    $("chatMessages").scrollTop = $("chatMessages").scrollHeight;
+}
 </script>
 
 </body>
